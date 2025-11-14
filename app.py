@@ -66,4 +66,4 @@ def chat():
     return render_template('chat.html')
 
 if __name__ == '__main__':
-    socketio.run(app, ssl_context='adhoc', debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, ssl_context='adhoc', debug=False)
