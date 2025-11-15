@@ -35,7 +35,8 @@
             position: relative;
             flex: 1 1 640px;
         }
-        .video-box video {
+        .video-box video,
+        .video-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -110,69 +111,31 @@
             font-style: italic;
             color: #4fc3f7;
         }
-
-        /* Стиль выпадающего списка стран */
-        .country-select {
-            padding: 8px 12px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #1976d2;
-            background-color: white;
-            color: #000;
-            margin: 0 5px;
-            cursor: pointer;
-        }
-        .country-select:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(25, 118, 210, 0.5);
-        }
     </style>
 </head>
 <body>
     <h1>Tuco Chat</h1>
 
     <div class="video-container">
+        <!-- Ваше видео -->
         <div class="video-box">
             <video id="localVideo" autoplay muted></video>
             <div class="video-label">Вы</div>
         </div>
+
+        <!-- Видео собеседника ИЛИ GIF -->
         <div class="video-box">
-            <video id="remoteVideo" autoplay></video>
+            <img id="remotePlaceholder" src="/static/loading.gif" alt="Ожидание собеседника..." style="display: block;">
+            <video id="remoteVideo" autoplay style="display: none;"></video>
             <div class="video-label">Собеседник</div>
         </div>
     </div>
 
     <div class="controls">
         <div style="margin: 10px 0;">
-            <label>
-                <input type="radio" name="gender" value="any" checked> Любой пол
-            </label>
-            <label>
-                <input type="radio" name="gender" value="male"> Мужчина
-            </label>
-            <label>
-                <input type="radio" name="gender" value="female"> Женщина
-            </label>
-        </div>
-
-        <!-- Выпадающий список стран -->
-        <div style="margin: 10px 0;">
-            <label for="country">Страна собеседника:</label>
-            <select id="country" class="country-select" name="country">
-                <option value="any">Любая страна</option>
-                <option value="ru">Россия</option>
-                <option value="ua">Украина</option>
-                <option value="kz">Казахстан</option>
-                <option value="by">Беларусь</option>
-                <option value="uz">Узбекистан</option>
-                <option value="az">Азербайджан</option>
-                <option value="md">Молдова</option>
-                <option value="ge">Грузия</option>
-                <option value="am">Армения</option>
-                <option value="lt">Литва</option>
-                <option value="lv">Латвия</option>
-                <option value="ee">Эстония</option>
-            </select>
+            <label><input type="radio" name="gender" value="any" checked> Любой пол</label>
+            <label><input type="radio" name="gender" value="male"> Мужчина</label>
+            <label><input type="radio" name="gender" value="female"> Женщина</label>
         </div>
 
         <button onclick="toggleSearch()" id="findButton">🔍 Поиск собеседника</button>
@@ -187,13 +150,13 @@
     <script>
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
+        const remotePlaceholder = document.getElementById('remotePlaceholder');
         const findButton = document.getElementById('findButton');
         const hangupButton = document.getElementById('hangupButton');
         const micButton = document.getElementById('micButton');
         const audioButton = document.getElementById('audioButton');
         const statusDiv = document.getElementById('status');
         const timerDiv = document.getElementById('timer');
-        const countrySelect = document.getElementById('country');
 
         let localStream;
         let remoteStream;
@@ -275,7 +238,6 @@
                 socket.off('connect_with');
                 socket.off('status');
                 socket.disconnect();
-                console.log('Поиск остановлен. Сокет отключён.');
             }
             socket = null;
             statusDiv.innerText = '🔍 Поиск остановлен.';
@@ -289,7 +251,6 @@
             socket = io('https://127.0.0.1:5000', { secure: true });
 
             const selectedGender = document.querySelector('input[name="gender"]:checked').value;
-            const selectedCountry = countrySelect.value;
 
             socket.on('status', (msg) => {
                 statusDiv.innerText = msg;
@@ -307,10 +268,7 @@
                 findButton.disabled = true;
             });
 
-            socket.emit('find_partner', {
-                gender: selectedGender,
-                country: selectedCountry
-            });
+            socket.emit('find_partner', { gender: selectedGender });
         }
 
         function startTimer() {
@@ -353,6 +311,9 @@
                 event.streams[0].getTracks().forEach(track => {
                     remoteStream.addTrack(track);
                 });
+                // ✅ Подключили видео — скрываем GIF
+                remotePlaceholder.style.display = 'none';
+                remoteVideo.style.display = 'block';
             };
 
             peerConnection.onicecandidate = (event) => {
@@ -375,6 +336,10 @@
                 console.error('Ошибка при создании offer:', err);
             }
         }
+
+        socket.on('signal', (data) => {
+            handleSignal(data);
+        });
 
         async function handleSignal(data) {
             if (!peerConnection) return;
@@ -405,7 +370,14 @@
             localStream.getAudioTracks().forEach(track => {
                 track.enabled = isMicrophoneEnabled;
             });
-            updateMicButton();
+
+            if (isMicrophoneEnabled) {
+                micButton.innerHTML = '🎤 Микрофон: Вкл';
+                micButton.style.background = '#1976d2';
+            } else {
+                micButton.innerHTML = '🚫 Микрофон: Выкл';
+                micButton.style.background = '#d32f2f';
+            }
         }
 
         function toggleRemoteAudio() {
@@ -430,10 +402,11 @@
             }
             if (socket) {
                 socket.disconnect();
-                socket = null;
             }
 
             remoteVideo.srcObject = null;
+            remoteVideo.style.display = 'none';
+            remotePlaceholder.style.display = 'block';  // ✅ Показываем GIF снова
 
             hangupButton.style.display = 'none';
             findButton.disabled = false;

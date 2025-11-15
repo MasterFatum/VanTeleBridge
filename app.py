@@ -38,8 +38,8 @@ def find_match():
                 waiting_queue.pop(i)
                 waiting_queue.pop(j - 1)  # после удаления i, j сдвигается
                 # Соединяем
-                socketio.emit('connect_with', {'target': user2['sid']}, room=user1['sid'])
-                socketio.emit('connect_with', {'target': user1['sid']}, room=user2['sid'])
+                socketio.emit('connect_with', {'target': user2['sid']})
+                socketio.emit('connect_with', {'target': user1['sid']})
                 return
 
 def are_compatible(user1, user2):
@@ -52,9 +52,8 @@ def are_compatible(user1, user2):
 
 @socketio.on('signal')
 def handle_signal(data):
-    target = data['target']
     payload = data['payload']
-    emit('signal', payload, room=target, include_self=False)
+    emit('signal', payload, include_self=False)
 
 @socketio.on('disconnect')
 def handle_disconnect():
