@@ -248,15 +248,23 @@
         }
 
         function connectAndFindPartner() {
+
+            if (socket && socket.connected)
+            {
+                socket.disconnect();
+            }
+
             socket = io('https://127.0.0.1:5000', { secure: true });
 
             const selectedGender = document.querySelector('input[name="gender"]:checked').value;
 
             socket.on('status', (msg) => {
+                 console.log('Статус:', msg);
                 statusDiv.innerText = msg;
             });
 
             socket.on('connect_with', (data) => {
+                console.log('Подключение к:', data.target);
                 statusDiv.innerText = '✅ Собеседник найден!';
                 hangupButton.style.display = 'inline-block';
                 timerDiv.style.display = 'block';
@@ -338,8 +346,13 @@
         }
 
         socket.on('signal', (data) => {
-            handleSignal(data);
+            console.log('Получен сигнал:', data.payload.type);
+            handleSignal(data.payload);
         });
+
+        const gender = document.querySelector('input[name="gender"]:checked')?.value || 'any';
+
+        socket.emit('find_partner', { gender });
 
         async function handleSignal(data) {
             if (!peerConnection) return;

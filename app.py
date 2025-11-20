@@ -3,66 +3,74 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='eventlet')
 
-# Очередь: [ { sid: ..., gender: 'male'|'female'|'any' }, ... ]
+# Очередь: [ { sid: ..., gender_pref: 'male'|'female'|'any' }, ... ]
 waiting_queue = []
 
 @socketio.on('find_partner')
 def handle_find_partner(data):
-    gender_pref = data.get('gender', 'any')  # 'male', 'female', 'any'
+    gender_pref = data.get('gender', 'any')
     sid = request.sid
 
-    # Удаляем из очереди, если уже был
-    waiting_queue[:] = [u for u in waiting_queue if u['sid'] != sid]
+    # Удаляем, если уже был
+    global waiting_queue
+    waiting_queue = [u for u in waiting_queue if u['sid'] != sid]
 
-    # Добавляем с предпочтением
-    waiting_queue.append({'sid': sid, 'gender_pref': gender_pref})
+    # Добавляем в очередь
+    waiting_queue.append({
+        'sid': sid,
+        'gender_pref': gender_pref
+    })
 
+    # Уведомляем пользователя
     emit('status', 'Поиск собеседника...')
 
-    # Попробуем подобрать пару
+    # Пробуем найти пару
     find_match()
+
+def are_compatible(user1, user2):
+    if user1['gender_pref'] == 'any' or user2['gender_pref'] == 'any':
+        return True
+    return user1['gender_pref'] == user2['gender_pref']
 
 def find_match():
     if len(waiting_queue) < 2:
         return
 
-    # Полный перебор: ищем совместимые пары
-    for i, user1 in enumerate(waiting_queue):
-        for j, user2 in enumerate(waiting_queue):
-            if i >= j:
-                continue
-            if are_compatible(user1, user2):
-                # Убираем из очереди
-                waiting_queue.pop(i)
-                waiting_queue.pop(j - 1)  # после удаления i, j сдвигается
-                # Соединяем
-                socketio.emit('connect_with', {'target': user2['sid']})
-                socketio.emit('connect_with', {'target': user1['sid']})
-                return
+    for i in range(len(waiting_queue)):
+        for j in range(i + 1, len(waiting_queue)):
+            u1 = waiting_queue[i]
+            u2 = waiting_queue[j]
+            if are_compatible(u1, u2):
+                # Удаляем из очереди
+                del waiting_queue[j]
+                del waiting_queue[i]
 
-def are_compatible(user1, user2):
-    # Правила совместимости:
-    # Любой пол подходит к 'any'
-    if user1['gender_pref'] == 'any' or user2['gender_pref'] == 'any':
-        return True
-    # Иначе должны совпадать
-    return user1['gender_pref'] == user2['gender_pref']
+                # Соединяем
+                socketio.emit('connect_with', {'target': u2['sid']}, to=u1['sid'])
+                socketio.emit('connect_with', {'target': u1['sid']}, to=u2['sid'])
+                print(f"Соединение: {u1['sid']} ↔ {u2['sid']}")  # Лог
+                return
 
 @socketio.on('signal')
 def handle_signal(data):
-    payload = data['payload']
-    emit('signal', payload, include_self=False)
+    target = data.get('target')
+    payload = data.get('payload')
+    if target:
+        emit('signal', {'payload': payload}, to=target, include_self=False)
+        print(f"Сигнал к {target}: {payload['type'] if payload else ''}")  # Лог
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    # Удаляем при отключении
-    waiting_queue[:] = [u for u in waiting_queue if u['sid'] != request.sid]
+    global waiting_queue
+    waiting_queue = [u for u in waiting_queue if u['sid'] != request.sid]
+    print(f"Пользователь отключён: {request.sid}")
 
 @app.route('/')
 def chat():
     return render_template('chat.html')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, ssl_context='adhoc', debug=False)
+    # Убедись, что установлен eventlet: pip install eventlet
+    socketio.run(app, host='0.0.0.0', port=5000, ssl_context='adhoc', debug=True)
