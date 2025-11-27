@@ -73,4 +73,4 @@ def chat():
 
 if __name__ == '__main__':
     # Убедись, что установлен eventlet: pip install eventlet
-    socketio.run(app, host='0.0.0.0', port=5000, ssl_context='adhoc', debug=True)
+    socketio.run(app, host='0.0.0.0', port=80, debug=False)
