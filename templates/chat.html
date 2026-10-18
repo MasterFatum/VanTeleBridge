@@ -411,6 +411,11 @@
             peerConnection.ontrack = (event) => {
                 event.streams[0].getTracks().forEach(track => {
                     remoteStream.addTrack(track);
+                    // Когда трек отключается — показываем GIF
+                    track.onended = () => {
+                        remoteVideo.style.display = 'none';
+                        remotePlaceholder.style.display = 'block';
+                    };
                 });
                 // ✅ Подключили видео — скрываем GIF
                 remotePlaceholder.style.display = 'none';
@@ -431,6 +436,11 @@
 
             peerConnection.oniceconnectionstatechange = () => {
                 console.log('ICE state:', peerConnection.iceConnectionState);
+                if (peerConnection.iceConnectionState === 'disconnected' ||
+                    peerConnection.iceConnectionState === 'failed') {
+                    remoteVideo.style.display = 'none';
+                    remotePlaceholder.style.display = 'block';
+                }
             };
 
             peerConnection.ontrack = (event) => {
