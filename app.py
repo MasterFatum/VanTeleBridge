@@ -73,6 +73,14 @@ def handle_disconnect():
     global waiting_queue
     waiting_queue = [u for u in waiting_queue if u['sid'] != request.sid]
     print(f"Пользователь отключён: {request.sid}")
+    # Уведомляем всех о disconnect (для WebRTC завершения)
+    socketio.emit('partner_disconnected')
+
+@socketio.on('hangup')
+def handle_hangup():
+    # Уведомляем всех о hangup
+    socketio.emit('partner_disconnected')
+    print(f"Hangup от {request.sid}")
 
 @app.route('/')
 def chat():

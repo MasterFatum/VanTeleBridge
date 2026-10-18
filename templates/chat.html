@@ -272,6 +272,12 @@
             getLocalStream();
         });
 
+        window.addEventListener('beforeunload', () => {
+            if (socket && socket.connected) {
+                socket.emit('hangup', {});
+            }
+        });
+
         async function getLocalStream() {
             try {
                 if (!localStream) {
@@ -367,6 +373,20 @@
             socket.on('signal', (data) => {
                 console.log('Signal received:', data);
                 handleSignal(data);
+            });
+
+            socket.on('partner_disconnected', () => {
+                console.log('Partner disconnected event received');
+                if (peerConnection) {
+                    peerConnection.close();
+                    peerConnection = null;
+                }
+                remoteVideo.style.display = 'none';
+                remotePlaceholder.style.display = 'block';
+                hangupButton.style.display = 'none';
+                findButton.disabled = false;
+                statusDiv.innerText = '⚠️ Собеседник отключился.';
+                resetTimer();
             });
 
             socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
@@ -551,9 +571,11 @@
                 peerConnection = null;
             }
             if (socket) {
+                socket.emit('hangup', {});
                 socket.off('connect_with');
                 socket.off('signal');
                 socket.off('status');
+                socket.off('partner_disconnected');
                 socket.disconnect();
                 socket = null;
             }
