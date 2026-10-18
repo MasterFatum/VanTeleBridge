@@ -3,13 +3,14 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins='*', async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
 
-# Очередь: [ { sid: ..., gender_pref: 'male'|'female'|'any' }, ... ]
+# Очередь: [ { sid: ..., country_pref: 'am'|'de'|...|'any', gender_pref: 'male'|'female'|'any' }, ... ]
 waiting_queue = []
 
 @socketio.on('find_partner')
 def handle_find_partner(data):
+    country_pref = data.get('country', 'any')
     gender_pref = data.get('gender', 'any')
     sid = request.sid
 
@@ -20,6 +21,7 @@ def handle_find_partner(data):
     # Добавляем в очередь
     waiting_queue.append({
         'sid': sid,
+        'country_pref': country_pref,
         'gender_pref': gender_pref
     })
 
@@ -30,9 +32,9 @@ def handle_find_partner(data):
     find_match()
 
 def are_compatible(user1, user2):
-    if user1['gender_pref'] == 'any' or user2['gender_pref'] == 'any':
-        return True
-    return user1['gender_pref'] == user2['gender_pref']
+    country_match = user1['country_pref'] == 'any' or user2['country_pref'] == 'any' or user1['country_pref'] == user2['country_pref']
+    gender_match = user1['gender_pref'] == 'any' or user2['gender_pref'] == 'any' or user1['gender_pref'] == user2['gender_pref']
+    return country_match and gender_match
 
 def find_match():
     if len(waiting_queue) < 2:
@@ -60,6 +62,11 @@ def handle_signal(data):
     if target:
         emit('signal', {'payload': payload}, to=target, include_self=False)
         print(f"Сигнал к {target}: {payload['type'] if payload else ''}")  # Лог
+    else:
+        print(f"Сигнал без target: {payload['type'] if payload else ''}")  # Лог
+        # Рассылаем всем (для отладки)
+        emit('signal', {'payload': payload}, include_self=False)
+        print(f"Рассылка сигнала всем: {payload['type'] if payload else ''}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
