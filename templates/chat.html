@@ -84,6 +84,39 @@
         .volume-control button:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
+        .signal-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            z-index: 10;
+            display: none;
+            align-items: center;
+            font-size: 12px;
+        }
+        .signal-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 16px;
+        }
+        .signal-bar {
+            width: 4px;
+            background: #555;
+            border-radius: 1px;
+            transition: background 0.3s;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 8px; }
+        .signal-bar:nth-child(3) { height: 12px; }
+        .signal-bar:nth-child(4) { height: 16px; }
+        .signal-good .signal-bar { background: #4caf50; }
+        .signal-medium .signal-bar:nth-child(1),
+        .signal-medium .signal-bar:nth-child(2) { background: #ff9800; }
+        .signal-poor .signal-bar:nth-child(1) { background: #f44336; }
         h1 {
             color: #ffffff;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
@@ -172,6 +205,14 @@
         <div class="video-box">
             <video id="localVideo" autoplay muted></video>
             <div class="video-label">Вы</div>
+            <div class="signal-indicator" id="localSignal">
+                <div class="signal-bars">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Видео собеседника ИЛИ GIF -->
@@ -179,6 +220,14 @@
             <img id="remotePlaceholder" src="/static/loading.gif" alt="Ожидание собеседника..." style="display: block;">
             <video id="remoteVideo" autoplay style="display: none;"></video>
             <div class="video-label">Собеседник</div>
+            <div class="signal-indicator" id="remoteSignal">
+                <div class="signal-bars">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+            </div>
             <div class="volume-control" id="volumeControl">
                 <span>🔊</span>
                 <input type="range" id="volumeSlider" min="0" max="2" step="0.1" value="1">
@@ -240,6 +289,8 @@
         const timerDiv = document.getElementById('timer');
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeControl = document.getElementById('volumeControl');
+        const localSignal = document.getElementById('localSignal');
+        const remoteSignal = document.getElementById('remoteSignal');
 
         let localStream;
         let remoteStream;
@@ -254,6 +305,7 @@
 
         let isSearching = false;
         let currentTargetSid = null;
+        let signalInterval = null;
 
         volumeSlider.addEventListener('input', () => {
             remoteVideo.volume = parseFloat(volumeSlider.value);
@@ -387,6 +439,9 @@
                 findButton.disabled = false;
                 statusDiv.innerText = '⚠️ Собеседник отключился.';
                 resetTimer();
+                localSignal.style.display = 'none';
+                remoteSignal.style.display = 'none';
+                clearInterval(signalInterval);
             });
 
             socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
@@ -440,6 +495,9 @@
                 // ✅ Подключили видео — скрываем GIF
                 remotePlaceholder.style.display = 'none';
                 remoteVideo.style.display = 'block';
+                localSignal.style.display = 'flex';
+                remoteSignal.style.display = 'flex';
+                startSignalMonitoring();
 
             };
 
@@ -467,10 +525,23 @@
                 console.log('Track received:', event.track.kind, event.track.id);
                 event.streams[0].getTracks().forEach(track => {
                     remoteStream.addTrack(track);
+                    track.onended = () => {
+                        remoteVideo.style.display = 'none';
+                        remotePlaceholder.style.display = 'block';
+                    };
                 });
                 // ✅ Подключили видео — скрываем GIF
                 remotePlaceholder.style.display = 'none';
                 remoteVideo.style.display = 'block';
+
+                if (localSignal && remoteSignal) {
+                    console.log('Starting signal monitoring');
+                    localSignal.style.display = 'flex';
+                    remoteSignal.style.display = 'flex';
+                    startSignalMonitoring();
+                } else {
+                    console.error('Signal elements not found');
+                }
             };
 
             try {
@@ -565,6 +636,54 @@
             }
         }
 
+        function startSignalMonitoring() {
+            clearInterval(signalInterval);
+            signalInterval = setInterval(async () => {
+                if (!peerConnection) return;
+
+                try {
+                    const stats = await peerConnection.getStats();
+                    let totalRoundTrip = 0;
+                    let count = 0;
+
+                    stats.forEach(report => {
+                        if (report.type === 'candidate-pair' && report.nominated) {
+                            totalRoundTrip += report.roundTripTime * 1000;
+                            count++;
+                        }
+                    });
+
+                    const avgLatency = count > 0 ? Math.round(totalRoundTrip / count) : 0;
+                    updateSignalIndicator('local', avgLatency);
+                    updateSignalIndicator('remote', avgLatency);
+                } catch (err) {
+                    console.error('Ошибка получения статистики:', err);
+                }
+            }, 1000);
+        }
+
+        function updateSignalIndicator(type, latency) {
+            const signalEl = document.getElementById(`${type}Signal`);
+            const bars = signalEl.querySelectorAll('.signal-bar');
+
+            // Определяем качество
+            let quality;
+            if (latency < 150) quality = 'good';
+            else if (latency < 300) quality = 'medium';
+            else quality = 'poor';
+
+            // Обновляем полоски
+            bars.forEach((bar, i) => {
+                if (quality === 'good') {
+                    bar.style.background = '#4caf50';
+                } else if (quality === 'medium') {
+                    bar.style.background = i < 3 ? '#ff9800' : '#555';
+                } else {
+                    bar.style.background = i === 0 ? '#f44336' : '#555';
+                }
+            });
+        }
+
         function hangup() {
             if (peerConnection) {
                 peerConnection.close();
@@ -586,6 +705,9 @@
             volumeSlider.value = 1;
             remotePlaceholder.style.display = 'block';
             currentTargetSid = null;
+            localSignal.style.display = 'none';
+            remoteSignal.style.display = 'none';
+            clearInterval(signalInterval);
 
 
             hangupButton.style.display = 'none';
