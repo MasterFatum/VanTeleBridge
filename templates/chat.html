@@ -17,9 +17,13 @@
             padding: 15px 20px;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            gap: 15px;
+            justify-content: space-between;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         .logo {
             width: 40px;
@@ -31,6 +35,15 @@
             margin: 0;
             font-size: 24px;
             font-weight: 600;
+        }
+        .lang-select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
         }
         .video-container {
             display: flex;
@@ -218,14 +231,20 @@
 </head>
 <body>
     <div class="header">
-        <img src="/static/logo.png" width="300" height="100">
+        <div class="header-left">
+            <img src="/static/logo.png" width="300px" height="100px" />
+        </div>
+        <select id="langSelect" class="lang-select" onchange="switchLang(this.value)">
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇬🇧 English</option>
+        </select>
     </div>
 
     <div class="video-container">
         <!-- Ваше видео -->
         <div class="video-box">
             <video id="localVideo" autoplay muted></video>
-            <div class="video-label">Вы</div>
+            <div class="video-label" data-i18n="you">Вы</div>
             <div class="signal-indicator" id="localSignal">
                 <div class="signal-bars">
                     <div class="signal-bar"></div>
@@ -240,7 +259,7 @@
         <div class="video-box">
             <img id="remotePlaceholder" src="/static/loading.gif" alt="Ожидание собеседника..." style="display: block;">
             <video id="remoteVideo" autoplay style="display: none;"></video>
-            <div class="video-label">Собеседник</div>
+            <div class="video-label" data-i18n="partner">Собеседник</div>
             <div class="signal-indicator" id="remoteSignal">
                 <div class="signal-bars">
                     <div class="signal-bar"></div>
@@ -259,9 +278,9 @@
 
     <div class="controls">
         <div style="margin: 10px 0;">
-            <label for="countrySelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;">Выберите страну для поиска:</label>
+            <label for="countrySelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="countryLabel">Выберите страну для поиска:</label>
             <select id="countrySelect" class="country-select">
-                <option value="any">🌍 Любая страна</option>
+                <option value="any" data-i18n="countryAny">🌍 Любая страна</option>
                 <option value="am">🇦🇲 Армения</option>
                 <option value="de">🇩🇪 Германия</option>
                 <option value="gb">🇬🇧 Великобритания</option>
@@ -281,20 +300,20 @@
             </select>
         </div>
         <div style="margin: 10px 0;">
-            <label for="genderSelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;">Пол собеседника:</label>
+            <label for="genderSelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="genderLabel">Пол собеседника:</label>
             <select id="genderSelect" class="country-select">
-                <option value="any">Любой пол</option>
-                <option value="male">Мужчина</option>
-                <option value="female">Женщина</option>
+                <option value="any" data-i18n="genderAny">Любой пол</option>
+                <option value="male" data-i18n="genderMale">Мужчина</option>
+                <option value="female" data-i18n="genderFemale">Женщина</option>
             </select>
         </div>
 
-        <button onclick="toggleSearch()" id="findButton" class="btn-default">🔍 Поиск собеседника</button>
-        <button onclick="toggleMicrophone()" id="micButton" class="btn-default">🎤 Микрофон: Вкл</button>
-        <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default">🔊 Звук: Вкл</button>
-        <button onclick="hangup()" id="hangupButton" style="display: none;">📞 Завершить</button>
-        <div id="status">🎥 Камера включается...</div>
-        <div id="timer" style="display: none;">⏱ Время разговора: 00:00</div>
+        <button onclick="toggleSearch()" id="findButton" class="btn-default" data-i18n="search">🔍 Поиск собеседника</button>
+        <button onclick="toggleMicrophone()" id="micButton" class="btn-default" data-i18n="micOn">🎤 Микрофон: Вкл</button>
+        <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default" data-i18n="soundOn">🔊 Звук: Вкл</button>
+        <button onclick="hangup()" id="hangupButton" style="display: none;" data-i18n="hangup">📞 Завершить</button>
+        <div id="status" data-i18n="cameraReady">🎥 Камера включается...</div>
+        <div id="timer" style="display: none;" data-i18n="timer">⏱ Время разговора: 00:00</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
@@ -328,6 +347,69 @@
         let currentTargetSid = null;
         let signalInterval = null;
 
+        let currentLang = 'ru';
+
+        const translations = {
+            ru: {
+                title: "Tuco Chat",
+                search: "🔍 Поиск собеседника",
+                stopSearch: "🛑 Завершить поиск",
+                micOn: "🎤 Микрофон: Вкл",
+                micOff: "🚫 Микрофон: Выкл",
+                soundOn: "🔊 Звук: Вкл",
+                soundOff: "🔇 Звук: Выкл",
+                hangup: "📞 Завершить",
+                cameraReady: "🎥 Камера включена. Нажмите «Поиск собеседника», чтобы начать.",
+                cameraWaiting: "🎥 Разрешите доступ к камере и микрофону...",
+                cameraError: "❌ Ошибка доступа к камере: разрешите доступ",
+                cameraPermission: "❌ Сначала разрешите доступ к камере!",
+                searching: "Поиск собеседника",
+                found: "✅ Собеседник найден!",
+                disconnected: "👋 Собеседник отключён. Нажмите «Поиск собеседника» для нового поиска.",
+                partnerDisconnected: "⚠️ Собеседник отключился.",
+                searchStopped: "🔍 Поиск остановлен.",
+                timeExpired: "⏰ Время разговора истекло. Поиск нового собеседника...",
+                timer: "⏱ Время разговора: {time}",
+                you: "Вы",
+                partner: "Собеседник",
+                countryLabel: "Выберите страну для поиска:",
+                genderLabel: "Пол собеседника:",
+                countryAny: "🌍 Любая страна",
+                genderAny: "Любой пол",
+                genderMale: "Мужчина",
+                genderFemale: "Женщина"
+            },
+            en: {
+                title: "Tuco Chat",
+                search: "🔍 Find Partner",
+                stopSearch: "🛑 Stop Search",
+                micOn: "🎤 Mic: On",
+                micOff: "🚫 Mic: Off",
+                soundOn: "🔊 Sound: On",
+                soundOff: "🔇 Sound: Off",
+                hangup: "📞 Hang Up",
+                cameraReady: "🎥 Camera ready. Click \"Find Partner\" to start.",
+                cameraWaiting: "🎥 Grant camera and microphone access...",
+                cameraError: "❌ Camera access error: please allow access",
+                cameraPermission: "❌ Please allow camera access first!",
+                searching: "Searching for partner",
+                found: "✅ Partner found!",
+                disconnected: "👋 Partner disconnected. Click \"Find Partner\" for a new search.",
+                partnerDisconnected: "⚠️ Partner disconnected.",
+                searchStopped: "🔍 Search stopped.",
+                timeExpired: "⏰ Call time expired. Searching for new partner...",
+                timer: "⏱ Call duration: {time}",
+                you: "You",
+                partner: "Partner",
+                countryLabel: "Select country for search:",
+                genderLabel: "Partner's gender:",
+                countryAny: "🌍 Any country",
+                genderAny: "Any gender",
+                genderMale: "Male",
+                genderFemale: "Female"
+            }
+        };
+
         volumeSlider.addEventListener('input', () => {
             remoteVideo.volume = parseFloat(volumeSlider.value);
         });
@@ -340,6 +422,34 @@
                 { urls: 'stun:stun.voip.google.com:3478' }
             ]
         };
+
+        function switchLang(lang) {
+            currentLang = lang;
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    if (key === 'timer') {
+                        // Для таймера обновляем только если он виден
+                        if (timerDiv.style.display !== 'none') {
+                            const min = String(diff.getUTCMinutes()).padStart(2, '0');
+                            const sec = String(diff.getUTCSeconds()).padStart(2, '0');
+                            el.textContent = t[key].replace('{time}', `${min}:${sec}`);
+                        }
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
 
         window.addEventListener('load', () => {
             getLocalStream();
@@ -354,10 +464,10 @@
         async function getLocalStream() {
             try {
                 if (!localStream) {
-                    statusDiv.innerText = '🎥 Разрешите доступ к камере и микрофону...';
+                    statusDiv.innerText = t('cameraWaiting');
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                     localVideo.srcObject = localStream;
-                    statusDiv.innerText = '✅ Камера включена. Нажмите «Поиск собеседника», чтобы начать.';
+                    statusDiv.innerText = t('cameraReady');
                     isMicrophoneEnabled = true;
                     localStream.getAudioTracks().forEach(track => {
                         track.enabled = true;
@@ -365,7 +475,7 @@
                     updateMicButton();
                 }
             } catch (err) {
-                statusDiv.innerText = '❌ Ошибка доступа к камере: разрешите доступ';
+                statusDiv.innerText = t('cameraError');
                 findButton.disabled = false;
                 console.error('getUserMedia error:', err);
             }
@@ -373,10 +483,10 @@
 
         function updateMicButton() {
             if (isMicrophoneEnabled) {
-                micButton.innerHTML = '🎤 Микрофон: Вкл';
+                micButton.innerHTML = t('micOn');
                 micButton.className = 'btn-default';
             } else {
-                micButton.innerHTML = '🚫 Микрофон: Выкл';
+                micButton.innerHTML = t('micOff');
                 micButton.className = 'btn-danger';
             }
         }
@@ -391,11 +501,11 @@
 
         function startSearch() {
             if (!localStream) {
-                statusDiv.innerText = '❌ Сначала разрешите доступ к камере!';
+                statusDiv.innerText = t('cameraPermission');
                 return;
             }
-            statusDiv.innerHTML = '<div class="loading-container">Поиск собеседника<span class="loading"></span><span class="loading"></span><span class="loading"></span></div>';
-            findButton.innerHTML = '🛑 Завершить поиск';
+            statusDiv.innerHTML = `<div class="loading-container">${t('searching')}<span class="loading"></span><span class="loading"></span><span class="loading"></span></div>`;
+            findButton.innerHTML = t('stopSearch');
             findButton.className = 'btn-danger';
             isSearching = true;
 
@@ -410,8 +520,8 @@
                 socket.disconnect();
             }
             socket = null;
-            statusDiv.innerText = '🔍 Поиск остановлен.';
-            findButton.innerHTML = '🔍 Поиск собеседника';
+            statusDiv.innerText = t('searchStopped');
+            findButton.innerHTML = t('search');
             findButton.className = 'btn-default';
             findButton.disabled = false;
             isSearching = false;
@@ -422,7 +532,6 @@
                 transports: ['polling']
             });
 
-
             const selectedCountry = document.getElementById('countrySelect').value;
             const selectedGender = document.getElementById('genderSelect').value;
 
@@ -431,14 +540,14 @@
             });
 
             socket.on('connect_with', (data) => {
-                statusDiv.innerText = '✅ Собеседник найден!';
+                statusDiv.innerText = t('found');
                 hangupButton.style.display = 'inline-block';
                 timerDiv.style.display = 'block';
                 startTimer();
                 currentTargetSid = data.target;
                 startCall(data.target);
                 isSearching = false;
-                findButton.innerHTML = '🔍 Поиск собеседника';
+                findButton.innerHTML = t('search');
                 findButton.className = 'btn-default';
                 findButton.disabled = true;
             });
@@ -458,7 +567,7 @@
                 remotePlaceholder.style.display = 'block';
                 hangupButton.style.display = 'none';
                 findButton.disabled = false;
-                statusDiv.innerText = '⚠️ Собеседник отключился.';
+                statusDiv.innerText = t('partnerDisconnected');
                 resetTimer();
                 localSignal.style.display = 'none';
                 remoteSignal.style.display = 'none';
@@ -476,10 +585,10 @@
                 const diff = new Date(now - startTime);
                 const min = String(diff.getUTCMinutes()).padStart(2, '0');
                 const sec = String(diff.getUTCSeconds()).padStart(2, '0');
-                timerDiv.innerText = `⏱ Время разговора: ${min}:${sec}`;
+                timerDiv.innerText = t('timer').replace('{time}', `${min}:${sec}`);
 
                 if (now - startTime >= 12 * 60 * 1000) {
-                    statusDiv.innerText = '⏰ Время разговора истекло. Поиск нового собеседника...';
+                    statusDiv.innerText = t('timeExpired');
                     hangup();
                     setTimeout(() => {
                         if (!isSearching) toggleSearch();
@@ -491,7 +600,7 @@
         function resetTimer() {
             clearInterval(timerInterval);
             timerInterval = null;
-            timerDiv.innerText = '⏱ Время разговора: 00:00';
+            timerDiv.innerText = t('timer').replace('{time}', '00:00');
             timerDiv.style.display = 'none';
         }
 
@@ -539,29 +648,6 @@
                     peerConnection.iceConnectionState === 'failed') {
                     remoteVideo.style.display = 'none';
                     remotePlaceholder.style.display = 'block';
-                }
-            };
-
-            peerConnection.ontrack = (event) => {
-                console.log('Track received:', event.track.kind, event.track.id);
-                event.streams[0].getTracks().forEach(track => {
-                    remoteStream.addTrack(track);
-                    track.onended = () => {
-                        remoteVideo.style.display = 'none';
-                        remotePlaceholder.style.display = 'block';
-                    };
-                });
-                // ✅ Подключили видео — скрываем GIF
-                remotePlaceholder.style.display = 'none';
-                remoteVideo.style.display = 'block';
-
-                if (localSignal && remoteSignal) {
-                    console.log('Starting signal monitoring');
-                    localSignal.style.display = 'flex';
-                    remoteSignal.style.display = 'flex';
-                    startSignalMonitoring();
-                } else {
-                    console.error('Signal elements not found');
                 }
             };
 
@@ -621,10 +707,10 @@
             });
 
             if (isMicrophoneEnabled) {
-                micButton.innerHTML = '🎤 Микрофон: Вкл';
+                micButton.innerHTML = t('micOn');
                 micButton.className = 'btn-default';
             } else {
-                micButton.innerHTML = '🚫 Микрофон: Выкл';
+                micButton.innerHTML = t('micOff');
                 micButton.className = 'btn-danger';
             }
         }
@@ -639,10 +725,10 @@
             });
 
             if (isRemoteAudioEnabled) {
-                audioButton.innerHTML = '🔊 Звук: Вкл';
+                audioButton.innerHTML = t('soundOn');
                 audioButton.className = 'btn-default';
             } else {
-                audioButton.innerHTML = '🔇 Звук: Выкл';
+                audioButton.innerHTML = t('soundOff');
                 audioButton.className = 'btn-danger';
             }
         }
@@ -730,10 +816,9 @@
             remoteSignal.style.display = 'none';
             clearInterval(signalInterval);
 
-
             hangupButton.style.display = 'none';
             findButton.disabled = false;
-            statusDiv.innerText = '👋 Собеседник отключён. Нажмите «Поиск собеседника» для нового поиска.';
+            statusDiv.innerText = t('disconnected');
             resetTimer();
         }
     </script>
