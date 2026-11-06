@@ -82,6 +82,14 @@ def handle_hangup():
     socketio.emit('partner_disconnected')
     print(f"Hangup от {request.sid}")
 
+@socketio.on('chat_message')
+def handle_chat_message(data):
+    target = data.get('target')
+    text = data.get('text')
+    if target:
+        emit('chat_message', {'text': text}, to=target, include_self=False)
+        print(f"Чат сообщение к {target}: {text}")
+
 @app.route('/')
 def chat():
     return render_template('chat.html')

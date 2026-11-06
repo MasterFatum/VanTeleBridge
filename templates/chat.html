@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Tuco Chat</title>
+    <title>Tuc-Tuc Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -227,6 +227,139 @@
             outline: none;
             box-shadow: 0 0 0 2px #4fc3f7;
         }
+        .controls-under-video {
+            margin: 10px auto;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+        .big-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 640px;
+            height: 180px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+            text-align: left;
+        }
+        .chat-message {
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+        .chat-message.self {
+            background-color: rgba(25, 118, 210, 0.6);
+            margin-left: 20%;
+        }
+        .chat-message.other {
+            background-color: rgba(255, 255, 255, 0.2);
+            margin-right: 20%;
+        }
+        .chat-input-container {
+            display: flex;
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.5);
+            gap: 5px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        .chat-send-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background-color: #1976d2;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .chat-send-btn:hover {
+            background-color: #1565c0;
+        }
+        .chat-toggle-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 11;
+        }
+        .chat-toggle-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px auto;
+            max-width: 1400px;
+            align-items: flex-start;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .column-left {
+            width: 640px;
+        }
+        .column-right {
+            width: 640px;
+        }
+        .controls-under-video {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .column-right .video-box {
+            height: 480px;
+        }
+        .column-right .video-box video,
+        .column-right .video-box img {
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -240,80 +373,93 @@
         </select>
     </div>
 
-    <div class="video-container">
-        <!-- Ваше видео -->
-        <div class="video-box">
-            <video id="localVideo" autoplay muted></video>
-            <div class="video-label" data-i18n="you">Вы</div>
-            <div class="signal-indicator" id="localSignal">
-                <div class="signal-bars">
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
+    <div class="main-container">
+        <!-- Левая колонка: ваше видео + элементы управления -->
+        <div class="column column-left">
+            <div class="video-box">
+                <video id="localVideo" autoplay muted></video>
+                <div class="video-label" data-i18n="you">Вы</div>
+                <div class="signal-indicator" id="localSignal">
+                    <div class="signal-bars">
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-under-video">
+                <div style="display: flex; gap: 20px; align-items: flex-start; width: 100%; max-width: 500px;">
+                    <div style="flex: 1;">
+                        <label for="countrySelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="countryLabel">Выберите страну для поиска:</label>
+                        <select id="countrySelect" class="country-select">
+                            <option value="any" data-i18n="countryAny">🌍 Любая страна</option>
+                            <option value="am">🇦🇲 Армения</option>
+                            <option value="de">🇩🇪 Германия</option>
+                            <option value="gb">🇬🇧 Великобритания</option>
+                            <option value="ge">🇬🇪 Грузия</option>
+                            <option value="kz">🇰🇿 Казахстан</option>
+                            <option value="cn">🇨🇳 Китай</option>
+                            <option value="lv">🇱🇻 Латвия</option>
+                            <option value="lt">🇱🇹 Литва</option>
+                            <option value="pl">🇵🇱 Польша</option>
+                            <option value="ru">🇷🇺 Россия</option>
+                            <option value="us">🇺🇸 США</option>
+                            <option value="tr">🇹🇷 Турция</option>
+                            <option value="ua">🇺🇦 Украина</option>
+                            <option value="fi">🇫🇮 Финляндия</option>
+                            <option value="fr">🇫🇷 Франция</option>
+                            <option value="ee">🇪🇪 Эстония</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="genderSelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="genderLabel">Пол собеседника:</label>
+                        <select id="genderSelect" class="country-select">
+                            <option value="any" data-i18n="genderAny">Любой пол</option>
+                            <option value="male" data-i18n="genderMale">Мужчина</option>
+                            <option value="female" data-i18n="genderFemale">Женщина</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="controls-row">
+                    <button onclick="toggleSearch()" id="findButton" class="btn-default big-btn" data-i18n="search">🔍 Поиск собеседника</button>
+                    <button onclick="toggleMicrophone()" id="micButton" class="btn-default big-btn" data-i18n="micOn">🎤 Микрофон: Вкл</button>
+                    <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default big-btn" data-i18n="soundOn">🔊 Звук: Вкл</button>
+                    <button onclick="hangup()" id="hangupButton" class="btn-danger big-btn" style="display: none;" data-i18n="hangup">📞 Завершить</button>
+                </div>
+                <div id="status" data-i18n="cameraReady">🎥 Камера включается...</div>
+                <div id="timer" style="display: none;" data-i18n="timer">⏱ Время разговора: 00:00</div>
+            </div>
+        </div>
+
+        <!-- Правая колонка: видео собеседника + чат -->
+        <div class="column column-right">
+            <div class="video-box">
+                <img id="remotePlaceholder" src="/static/loading.gif" alt="Ожидание собеседника..." style="display: block;">
+                <video id="remoteVideo" autoplay style="display: none;"></video>
+                <div class="video-label" data-i18n="partner">Собеседник</div>
+                <div class="signal-indicator" id="remoteSignal">
+                    <div class="signal-bars">
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                        <div class="signal-bar"></div>
+                    </div>
+                </div>
+                <div class="volume-control" id="volumeControl">
+                    <span>🔊</span>
+                    <input type="range" id="volumeSlider" min="0" max="2" step="0.1" value="1">
+                    <button id="toggleCameraBtn" onclick="toggleRemoteCamera()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 2px 6px;">📷</button>
+                </div>
+            </div>
+            <div class="chat-container" id="chatContainer" style="display: flex;">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" data-i18n-placeholder="chatPlaceholder" placeholder="Введите сообщение...">
+                    <button class="chat-send-btn" onclick="sendChatMessage()" data-i18n="send">Отправить</button>
                 </div>
             </div>
         </div>
-
-        <!-- Видео собеседника ИЛИ GIF -->
-        <div class="video-box">
-            <img id="remotePlaceholder" src="/static/loading.gif" alt="Ожидание собеседника..." style="display: block;">
-            <video id="remoteVideo" autoplay style="display: none;"></video>
-            <div class="video-label" data-i18n="partner">Собеседник</div>
-            <div class="signal-indicator" id="remoteSignal">
-                <div class="signal-bars">
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                </div>
-            </div>
-            <div class="volume-control" id="volumeControl">
-                <span>🔊</span>
-                <input type="range" id="volumeSlider" min="0" max="2" step="0.1" value="1">
-                <button id="toggleCameraBtn" onclick="toggleRemoteCamera()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 2px 6px;">📷</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <div style="margin: 10px 0;">
-            <label for="countrySelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="countryLabel">Выберите страну для поиска:</label>
-            <select id="countrySelect" class="country-select">
-                <option value="any" data-i18n="countryAny">🌍 Любая страна</option>
-                <option value="am">🇦🇲 Армения</option>
-                <option value="de">🇩🇪 Германия</option>
-                <option value="gb">🇬🇧 Великобритания</option>
-                <option value="ge">🇬🇪 Грузия</option>
-                <option value="kz">🇰🇿 Казахстан</option>
-                <option value="cn">🇨🇳 Китай</option>
-                <option value="lv">🇱🇻 Латвия</option>
-                <option value="lt">🇱🇹 Литва</option>
-                <option value="pl">🇵🇱 Польша</option>
-                <option value="ru">🇷🇺 Россия</option>
-                <option value="us">🇺🇸 США</option>
-                <option value="tr">🇹🇷 Турция</option>
-                <option value="ua">🇺🇦 Украина</option>
-                <option value="fi">🇫🇮 Финляндия</option>
-                <option value="fr">🇫🇷 Франция</option>
-                <option value="ee">🇪🇪 Эстония</option>
-            </select>
-        </div>
-        <div style="margin: 10px 0;">
-            <label for="genderSelect" style="display: block; margin-bottom: 5px; font-size: 14px; color: #bbdefb;" data-i18n="genderLabel">Пол собеседника:</label>
-            <select id="genderSelect" class="country-select">
-                <option value="any" data-i18n="genderAny">Любой пол</option>
-                <option value="male" data-i18n="genderMale">Мужчина</option>
-                <option value="female" data-i18n="genderFemale">Женщина</option>
-            </select>
-        </div>
-
-        <button onclick="toggleSearch()" id="findButton" class="btn-default" data-i18n="search">🔍 Поиск собеседника</button>
-        <button onclick="toggleMicrophone()" id="micButton" class="btn-default" data-i18n="micOn">🎤 Микрофон: Вкл</button>
-        <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default" data-i18n="soundOn">🔊 Звук: Вкл</button>
-        <button onclick="hangup()" id="hangupButton" style="display: none;" data-i18n="hangup">📞 Завершить</button>
-        <div id="status" data-i18n="cameraReady">🎥 Камера включается...</div>
-        <div id="timer" style="display: none;" data-i18n="timer">⏱ Время разговора: 00:00</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
@@ -331,6 +477,9 @@
         const volumeControl = document.getElementById('volumeControl');
         const localSignal = document.getElementById('localSignal');
         const remoteSignal = document.getElementById('remoteSignal');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
 
         let localStream;
         let remoteStream;
@@ -346,13 +495,14 @@
         let isSearching = false;
         let currentTargetSid = null;
         let signalInterval = null;
+        let chatPartnerId = null;
 
         let currentLang = 'ru';
 
         const translations = {
             ru: {
-                title: "Tuco Chat",
-                search: "🔍 Поиск собеседника",
+                title: "Tuc-Tuc Chat",
+                search: "🔍 Поиск",
                 stopSearch: "🛑 Завершить поиск",
                 micOn: "🎤 Микрофон: Вкл",
                 micOff: "🚫 Микрофон: Выкл",
@@ -377,11 +527,13 @@
                 countryAny: "🌍 Любая страна",
                 genderAny: "Любой пол",
                 genderMale: "Мужчина",
-                genderFemale: "Женщина"
+                genderFemale: "Женщина",
+                chatPlaceholder: "Введите сообщение...",
+                send: "Отправить"
             },
             en: {
-                title: "Tuco Chat",
-                search: "🔍 Find Partner",
+                title: "Tuc-Tuc Chat",
+                search: "🔍 Find",
                 stopSearch: "🛑 Stop Search",
                 micOn: "🎤 Mic: On",
                 micOff: "🚫 Mic: Off",
@@ -406,13 +558,45 @@
                 countryAny: "🌍 Any country",
                 genderAny: "Any gender",
                 genderMale: "Male",
-                genderFemale: "Female"
+                genderFemale: "Female",
+                chatPlaceholder: "Type a message...",
+                send: "Send"
             }
         };
 
         volumeSlider.addEventListener('input', () => {
             remoteVideo.volume = parseFloat(volumeSlider.value);
         });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        function toggleChat() {
+            chatInput.focus();
+        }
+
+        function addChatMessage(text, isSelf) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${isSelf ? 'self' : 'other'}`;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !socket || !chatPartnerId) return;
+
+            addChatMessage(text, true);
+            socket.emit('chat_message', {
+                target: chatPartnerId,
+                text: text
+            });
+            chatInput.value = '';
+        }
 
         const servers = {
             iceServers: [
@@ -445,6 +629,12 @@
                     }
                 }
             });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    el.placeholder = t[key];
+                }
+            });
         }
 
         function t(key) {
@@ -452,6 +642,7 @@
         }
 
         window.addEventListener('load', () => {
+            applyTranslations();
             getLocalStream();
         });
 
@@ -484,10 +675,10 @@
         function updateMicButton() {
             if (isMicrophoneEnabled) {
                 micButton.innerHTML = t('micOn');
-                micButton.className = 'btn-default';
+                micButton.className = 'btn-default big-btn';
             } else {
                 micButton.innerHTML = t('micOff');
-                micButton.className = 'btn-danger';
+                micButton.className = 'btn-danger big-btn';
             }
         }
 
@@ -506,7 +697,7 @@
             }
             statusDiv.innerHTML = `<div class="loading-container">${t('searching')}<span class="loading"></span><span class="loading"></span><span class="loading"></span></div>`;
             findButton.innerHTML = t('stopSearch');
-            findButton.className = 'btn-danger';
+            findButton.className = 'btn-danger big-btn';
             isSearching = true;
 
             connectAndFindPartner();
@@ -522,7 +713,7 @@
             socket = null;
             statusDiv.innerText = t('searchStopped');
             findButton.innerHTML = t('search');
-            findButton.className = 'btn-default';
+            findButton.className = 'btn-default big-btn';
             findButton.disabled = false;
             isSearching = false;
         }
@@ -545,10 +736,11 @@
                 timerDiv.style.display = 'block';
                 startTimer();
                 currentTargetSid = data.target;
+                chatPartnerId = data.target;
                 startCall(data.target);
                 isSearching = false;
                 findButton.innerHTML = t('search');
-                findButton.className = 'btn-default';
+                findButton.className = 'btn-default big-btn';
                 findButton.disabled = true;
             });
 
@@ -572,6 +764,13 @@
                 localSignal.style.display = 'none';
                 remoteSignal.style.display = 'none';
                 clearInterval(signalInterval);
+                chatPartnerId = null;
+                chatMessages.innerHTML = '';
+            });
+
+            socket.on('chat_message', (data) => {
+                console.log('Chat message received:', data);
+                addChatMessage(data.text, false);
             });
 
             socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
@@ -708,10 +907,10 @@
 
             if (isMicrophoneEnabled) {
                 micButton.innerHTML = t('micOn');
-                micButton.className = 'btn-default';
+                micButton.className = 'btn-default big-btn';
             } else {
                 micButton.innerHTML = t('micOff');
-                micButton.className = 'btn-danger';
+                micButton.className = 'btn-danger big-btn';
             }
         }
 
@@ -726,10 +925,10 @@
 
             if (isRemoteAudioEnabled) {
                 audioButton.innerHTML = t('soundOn');
-                audioButton.className = 'btn-default';
+                audioButton.className = 'btn-default big-btn';
             } else {
                 audioButton.innerHTML = t('soundOff');
-                audioButton.className = 'btn-danger';
+                audioButton.className = 'btn-danger big-btn';
             }
         }
 
@@ -802,6 +1001,7 @@
                 socket.off('signal');
                 socket.off('status');
                 socket.off('partner_disconnected');
+                socket.off('chat_message');
                 socket.disconnect();
                 socket = null;
             }
@@ -812,11 +1012,15 @@
             volumeSlider.value = 1;
             remotePlaceholder.style.display = 'block';
             currentTargetSid = null;
+            chatPartnerId = null;
             localSignal.style.display = 'none';
             remoteSignal.style.display = 'none';
             clearInterval(signalInterval);
+            chatMessages.innerHTML = '';
+            chatContainer.style.display = 'none';
 
             hangupButton.style.display = 'none';
+            findButton.className = 'btn-default big-btn';
             findButton.disabled = false;
             statusDiv.innerText = t('disconnected');
             resetTimer();
