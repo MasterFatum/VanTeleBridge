@@ -228,7 +228,7 @@
             box-shadow: 0 0 0 2px #4fc3f7;
         }
         .controls-under-video {
-            margin: 10px auto;
+            margin: 20px auto;
             max-width: 640px;
             display: flex;
             flex-direction: column;
@@ -244,7 +244,7 @@
         }
         .big-btn {
             padding: 12px 20px;
-            font-size: 16px;
+            font-size: 20px;
             width: 200px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -252,7 +252,7 @@
         .chat-container {
             width: 100%;
             max-width: 640px;
-            height: 180px;
+            height: 280px;
             background-color: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
             display: flex;
@@ -422,7 +422,7 @@
                     </div>
                 </div>
                 <div class="controls-row">
-                    <button onclick="toggleSearch()" id="findButton" class="btn-default big-btn" data-i18n="search">🔍 Поиск собеседника</button>
+                    <button onclick="toggleSearch()" id="findButton" class="btn-default big-btn" data-i18n="search">🔍 Поиск</button>
                     <button onclick="toggleMicrophone()" id="micButton" class="btn-default big-btn" data-i18n="micOn">🎤 Микрофон: Вкл</button>
                     <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default big-btn" data-i18n="soundOn">🔊 Звук: Вкл</button>
                     <button onclick="hangup()" id="hangupButton" class="btn-danger big-btn" style="display: none;" data-i18n="hangup">📞 Завершить</button>
@@ -509,13 +509,13 @@
                 soundOn: "🔊 Звук: Вкл",
                 soundOff: "🔇 Звук: Выкл",
                 hangup: "📞 Завершить",
-                cameraReady: "🎥 Камера включена. Нажмите «Поиск собеседника», чтобы начать.",
+                cameraReady: "🎥 Камера включена. Нажмите «Поиск», чтобы начать.",
                 cameraWaiting: "🎥 Разрешите доступ к камере и микрофону...",
                 cameraError: "❌ Ошибка доступа к камере: разрешите доступ",
                 cameraPermission: "❌ Сначала разрешите доступ к камере!",
                 searching: "Поиск собеседника",
                 found: "✅ Собеседник найден!",
-                disconnected: "👋 Собеседник отключён. Нажмите «Поиск собеседника» для нового поиска.",
+                disconnected: "👋 Собеседник отключён. Нажмите «Поиск» для нового поиска.",
                 partnerDisconnected: "⚠️ Собеседник отключился.",
                 searchStopped: "🔍 Поиск остановлен.",
                 timeExpired: "⏰ Время разговора истекло. Поиск нового собеседника...",
@@ -525,9 +525,9 @@
                 countryLabel: "Выберите страну для поиска:",
                 genderLabel: "Пол собеседника:",
                 countryAny: "🌍 Любая страна",
-                genderAny: "Любой пол",
-                genderMale: "Мужчина",
-                genderFemale: "Женщина",
+                genderAny: "👤 Любой пол",
+                genderMale: "👨 Мужчина",
+                genderFemale: "👩 Женщина",
                 chatPlaceholder: "Введите сообщение...",
                 send: "Отправить"
             },
