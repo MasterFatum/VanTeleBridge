@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Контакты — Tuc-Tuc Chat{% endblock %}
+
+{% block meta_desc %}Контактная информация для связи с командой Tuc-Tuc Chat{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="text-align: center; margin-bottom: 30px; font-size: 32px;" data-i18n="page_title">📞 Контакты</h1>
+    
+    <div style="background: rgba(0, 0, 0, 0.2); padding: 40px; border-radius: 15px;">
+        <div style="display: grid; gap: 30px;">
+            <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 15px;">📧</div>
+                <h3 style="margin-bottom: 10px; color: #4fc3f7;" data-i18n="email_title">Email</h3>
+                <p style="font-size: 18px;">support@tuctuc-chat.com</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 15px;">💬</div>
+                <h3 style="margin-bottom: 10px; color: #4fc3f7;" data-i18n="telegram_title">Telegram</h3>
+                <p style="font-size: 18px;">@tuctuc-chat_support</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <h3 style="margin-bottom: 15px; color: #4fc3f7;" data-i18n="feedback_title">Обратная связь</h3>
+            <p style="font-size: 16px; line-height: 1.6;" data-i18n="feedback_text">
+                Если у вас есть вопросы, предложения или вы обнаружили нарушение правил — 
+                напишите нам, и мы постараемся ответить в течение 24 часов.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Дополнительные переводы для страницы контактов
+    translations.ru.page_title = "📞 Контакты";
+    translations.en.page_title = "📞 Contacts";
+    translations.ru.email_title = "Email";
+    translations.en.email_title = "Email";
+    translations.ru.telegram_title = "Telegram";
+    translations.en.telegram_title = "Telegram";
+    translations.ru.feedback_title = "Обратная связь";
+    translations.en.feedback_title = "Feedback";
+    translations.ru.feedback_text = "Если у вас есть вопросы, предложения или вы обнаружили нарушение правил — напишите нам, и мы постараемся ответить в течение 24 часов.";
+    translations.en.feedback_text = "If you have questions, suggestions, or have noticed rule violations — write to us, and we'll try to respond within 24 hours.";
+</script>
+{% endblock %}

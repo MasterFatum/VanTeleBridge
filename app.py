@@ -113,9 +113,25 @@ def handle_chat_message(data):
         socketio.emit('chat_message', {'text': text}, room=target, include_self=False)
         print(f"Чат: {request.sid} -> {target}: {text}")
 
+def render_page(template, lang='ru', active_page='home', **kwargs):
+    """Обёртка для рендеринга страниц с базовым шаблоном"""
+    return render_template(template, lang=lang, active_page=active_page, **kwargs)
+
 @app.route('/')
 def chat():
-    return render_template('chat.html')
+    return render_page('chat.html', active_page='home')
+
+@app.route('/rules')
+def rules():
+    return render_page('rules.html', active_page='rules')
+
+@app.route('/contacts')
+def contacts():
+    return render_page('contacts.html', active_page='contacts')
+
+@app.route('/privacy')
+def privacy():
+    return render_page('privacy.html', active_page='privacy')
 
 if __name__ == '__main__':
     # Убедись, что установлен eventlet: pip install eventlet

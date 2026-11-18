@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Политика конфиденциальности — Tuco Chat{% endblock %}
+
+{% block meta_desc %}Политика конфиденциальности и обработки данных в Tuco Chat{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="text-align: center; margin-bottom: 30px; font-size: 32px;" data-i18n="page_title">🔒 Политика конфиденциальности</h1>
+    
+    <div style="background: rgba(0, 0, 0, 0.2); padding: 30px; border-radius: 15px; line-height: 1.8;">
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">1. Сбор данных</h2>
+        <p style="margin-bottom: 20px;">
+            1.1. Tuco Chat не собирает и не хранит личные данные пользователей.<br>
+            1.2. Мы не требуем регистрацию, email или номер телефона.<br>
+            1.3. IP-адреса используются исключительно для установления P2P-соединения.
+        </p>
+        
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">2. Видеозвонки</h2>
+        <p style="margin-bottom: 20px;">
+            2.1. Видеозвонки осуществляются напрямую между пользователями (P2P).<br>
+            2.2. Мы не записываем и не храним видеозвонки.<br>
+            2.3. Трафик не проходит через наши серверы после установления соединения.
+        </p>
+        
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">3. Сообщения</h2>
+        <p style="margin-bottom: 20px;">
+            3.1. Текстовые сообщения передаются в реальном времени.<br>
+            3.2. Мы не сохраняем историю сообщений.<br>
+            3.3. Сообщения видны только участникам разговора.
+        </p>
+        
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">4. Файлы cookie</h2>
+        <p style="margin-bottom: 20px;">
+            4.1. Мы используем только технические cookie для работы сервиса.<br>
+            4.2. Мы не используем трекинговые или рекламные cookie.<br>
+            4.3. Вы можете отключить cookie в настройках браузера.
+        </p>
+        
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">5. Изменения</h2>
+        <p style="margin-bottom: 20px;">
+            5.1. Мы оставляем за собой право изменять эту политику.<br>
+            5.2. Изменения вступают в силу с момента публикации.<br>
+            5.3. Рекомендуем периодически проверять эту страницу.
+        </p>
+        
+        <h2 style="margin-bottom: 15px; color: #4fc3f7;">6. Контакты</h2>
+        <p style="margin-bottom: 20px;">
+            По вопросам обработки данных: <a href="/contacts" style="color: #4fc3f7;">Свяжитесь с нами</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Дополнительные переводы для страницы конфиденциальности
+    translations.ru.page_title = "🔒 Политика конфиденциальности";
+    translations.en.page_title = "🔒 Privacy Policy";
+</script>
+{% endblock %}
