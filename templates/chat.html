@@ -425,7 +425,6 @@
                     <button onclick="toggleSearch()" id="findButton" class="btn-default big-btn" data-i18n="search">🔍 Поиск</button>
                     <button onclick="toggleMicrophone()" id="micButton" class="btn-default big-btn" data-i18n="micOn">🎤 Микрофон: Вкл</button>
                     <button onclick="toggleRemoteAudio()" id="audioButton" class="btn-default big-btn" data-i18n="soundOn">🔊 Звук: Вкл</button>
-                    <button onclick="hangup()" id="hangupButton" class="btn-danger big-btn" style="display: none;" data-i18n="hangup">📞 Завершить</button>
                 </div>
                 <div id="status" data-i18n="cameraReady">🎥 Камера включается...</div>
                 <div id="timer" style="display: none;" data-i18n="timer">⏱ Время разговора: 00:00</div>
@@ -468,7 +467,7 @@
         const remoteVideo = document.getElementById('remoteVideo');
         const remotePlaceholder = document.getElementById('remotePlaceholder');
         const findButton = document.getElementById('findButton');
-        const hangupButton = document.getElementById('hangupButton');
+        const hangupButton = null;
         const micButton = document.getElementById('micButton');
         const audioButton = document.getElementById('audioButton');
         const statusDiv = document.getElementById('status');
@@ -493,6 +492,7 @@
         let startTime = null;
 
         let isSearching = false;
+        let isHangingUp = false;
         let currentTargetSid = null;
         let signalInterval = null;
         let chatPartnerId = null;
@@ -516,7 +516,7 @@
                 searching: "Поиск собеседника",
                 found: "✅ Собеседник найден!",
                 disconnected: "👋 Собеседник отключён. Нажмите «Поиск» для нового поиска.",
-                partnerDisconnected: "⚠️ Собеседник отключился.",
+                partnerDisconnected: "👋 Собеседник отключён. Нажмите «Поиск» для нового поиска.",
                 searchStopped: "🔍 Поиск остановлен.",
                 timeExpired: "⏰ Время разговора истекло. Поиск нового собеседника...",
                 timer: "⏱ Время разговора: {time}",
@@ -547,7 +547,7 @@
                 searching: "Searching for partner",
                 found: "✅ Partner found!",
                 disconnected: "👋 Partner disconnected. Click \"Find Partner\" for a new search.",
-                partnerDisconnected: "⚠️ Partner disconnected.",
+                partnerDisconnected: "👋 Partner disconnected. Click \"Find Partner\" for a new search.",
                 searchStopped: "🔍 Search stopped.",
                 timeExpired: "⏰ Call time expired. Searching for new partner...",
                 timer: "⏱ Call duration: {time}",
@@ -685,12 +685,16 @@
         function toggleSearch() {
             if (isSearching) {
                 stopSearch();
+            } else if (currentTargetSid) {
+                hangup();
             } else {
                 startSearch();
             }
         }
 
         function startSearch() {
+            if (isSearching) return;
+            isHangingUp = false;
             if (!localStream) {
                 statusDiv.innerText = t('cameraPermission');
                 return;
@@ -705,12 +709,10 @@
 
         function stopSearch() {
             if (socket) {
-                socket.off('connect_with');
-                socket.off('status');
-                socket.off('signal');
+                socket.emit('leave_room', { room: socket.id });
                 socket.disconnect();
+                socket = null;
             }
-            socket = null;
             statusDiv.innerText = t('searchStopped');
             findButton.innerHTML = t('search');
             findButton.className = 'btn-default big-btn';
@@ -719,29 +721,29 @@
         }
 
         function connectAndFindPartner() {
+            // Очищаем старый сокет
+            if (socket) {
+                socket.off();
+                socket.disconnect();
+                socket = null;
+            }
+
             socket = io(window.location.origin, {
-                transports: ['polling']
+                transports: ['polling'],
+                forceNew: true
             });
 
             const selectedCountry = document.getElementById('countrySelect').value;
             const selectedGender = document.getElementById('genderSelect').value;
 
-            socket.on('status', (msg) => {
-                statusDiv.innerText = msg;
+            socket.on('connect', () => {
+                console.log('Socket подключён, sid:', socket.id);
+                socket.emit('join_room', { room: socket.id });
+                socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
             });
 
-            socket.on('connect_with', (data) => {
-                statusDiv.innerText = t('found');
-                hangupButton.style.display = 'inline-block';
-                timerDiv.style.display = 'block';
-                startTimer();
-                currentTargetSid = data.target;
-                chatPartnerId = data.target;
-                startCall(data.target);
-                isSearching = false;
-                findButton.innerHTML = t('search');
-                findButton.className = 'btn-default big-btn';
-                findButton.disabled = true;
+            socket.on('status', (msg) => {
+                statusDiv.innerText = msg;
             });
 
             socket.on('signal', (data) => {
@@ -749,31 +751,49 @@
                 handleSignal(data);
             });
 
+            socket.on('connect_with', (data) => {
+                statusDiv.innerText = t('found');
+                timerDiv.style.display = 'block';
+                chatContainer.style.display = 'flex';
+                startTimer();
+                currentTargetSid = data.target;
+                chatPartnerId = data.target;
+                startCall(data.target);
+                isSearching = false;
+                findButton.innerHTML = t('hangup');
+                findButton.className = 'btn-danger big-btn';
+                findButton.disabled = false;
+            });
+
             socket.on('partner_disconnected', () => {
                 console.log('Partner disconnected event received');
+                if (isHangingUp) {
+                    isHangingUp = false;
+                    return;
+                }
                 if (peerConnection) {
                     peerConnection.close();
                     peerConnection = null;
                 }
                 remoteVideo.style.display = 'none';
                 remotePlaceholder.style.display = 'block';
-                hangupButton.style.display = 'none';
+                findButton.innerHTML = t('search');
+                findButton.className = 'btn-default big-btn';
                 findButton.disabled = false;
-                statusDiv.innerText = t('partnerDisconnected');
+                statusDiv.innerText = t('disconnected');
                 resetTimer();
                 localSignal.style.display = 'none';
                 remoteSignal.style.display = 'none';
                 clearInterval(signalInterval);
                 chatPartnerId = null;
                 chatMessages.innerHTML = '';
+                // Не отключаем сокет — оставляем его рабочим для нового поиска
             });
 
             socket.on('chat_message', (data) => {
                 console.log('Chat message received:', data);
                 addChatMessage(data.text, false);
             });
-
-            socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
         }
 
         function startTimer() {
@@ -991,12 +1011,14 @@
         }
 
         function hangup() {
+            isHangingUp = true;
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
             }
             if (socket) {
                 socket.emit('hangup', {});
+                socket.emit('leave_room', { room: socket.id });
                 socket.off('connect_with');
                 socket.off('signal');
                 socket.off('status');
@@ -1017,9 +1039,8 @@
             remoteSignal.style.display = 'none';
             clearInterval(signalInterval);
             chatMessages.innerHTML = '';
-            chatContainer.style.display = 'none';
 
-            hangupButton.style.display = 'none';
+            findButton.innerHTML = t('search');
             findButton.className = 'btn-default big-btn';
             findButton.disabled = false;
             statusDiv.innerText = t('disconnected');
