@@ -1,19 +1,16 @@
-from datetime import datetime
-
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading', logger=True, engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
 
 # Очередь: [ { sid: ..., country_pref: 'am'|'de'|...|'any', gender_pref: 'male'|'female'|'any' }, ... ]
 waiting_queue = []
 
 @socketio.on('connect')
 def handle_connect():
-    sid = request.sid
-    print(f"Клиент подключён: {sid}")
+    pass
 
 @socketio.on('join_room')
 def handle_join_room(data):
@@ -21,7 +18,6 @@ def handle_join_room(data):
     if room:
         from flask_socketio import join_room
         join_room(room)
-        print(f"Клиент {request.sid} вступил в комнату {room}")
 
 @socketio.on('leave_room')
 def handle_leave_room(data):
@@ -29,7 +25,6 @@ def handle_leave_room(data):
     if room:
         from flask_socketio import leave_room
         leave_room(room)
-        print(f"Клиент {request.sid} покинул комнату {room}")
 
 @socketio.on('find_partner')
 def handle_find_partner(data):
@@ -50,8 +45,6 @@ def handle_find_partner(data):
 
     # Уведомляем пользователя
     emit('status', 'Поиск собеседника...')
-
-    # Пробуем найти пару
     find_match()
 
 def are_compatible(user1, user2):
@@ -75,7 +68,6 @@ def find_match():
                 # Соединяем
                 socketio.emit('connect_with', {'target': u2['sid']}, room=u1['sid'])
                 socketio.emit('connect_with', {'target': u1['sid']}, room=u2['sid'])
-                print(f"Соединение: {u1['sid']} ↔ {u2['sid']}")  # Лог
                 return
 
 @socketio.on('signal')
@@ -84,26 +76,16 @@ def handle_signal(data):
     payload = data.get('payload')
     if target:
         socketio.emit('signal', {'payload': payload}, room=target, include_self=False)
-        print(f"Сигнал к {target}: {payload['type'] if payload else ''}")  # Лог
-    else:
-        print(f"Сигнал без target: {payload['type'] if payload else ''}")  # Лог
-        # Рассылаем всем (для отладки)
-        emit('signal', {'payload': payload}, include_self=False)
-        print(f"Рассылка сигнала всем: {payload['type'] if payload else ''}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
     global waiting_queue
     waiting_queue = [u for u in waiting_queue if u['sid'] != request.sid]
-    print(f"Пользователь отключён: {request.sid}")
-    # Уведомляем всех о disconnect (для WebRTC завершения)
     socketio.emit('partner_disconnected')
 
 @socketio.on('hangup')
 def handle_hangup():
-    # Уведомляем всех о hangup
     socketio.emit('partner_disconnected')
-    print(f"Hangup от {request.sid}")
 
 @socketio.on('chat_message')
 def handle_chat_message(data):
@@ -111,27 +93,22 @@ def handle_chat_message(data):
     text = data.get('text')
     if target and text:
         socketio.emit('chat_message', {'text': text}, room=target, include_self=False)
-        print(f"Чат: {request.sid} -> {target}: {text}")
-
-def render_page(template, lang='ru', active_page='home', **kwargs):
-    """Обёртка для рендеринга страниц с базовым шаблоном"""
-    return render_template(template, lang=lang, active_page=active_page, **kwargs)
 
 @app.route('/')
 def chat():
-    return render_page('chat.html', active_page='home')
+    return render_template('chat.html', active_page='home')
 
 @app.route('/rules')
 def rules():
-    return render_page('rules.html', active_page='rules')
+    return render_template('rules.html', active_page='rules')
 
 @app.route('/contacts')
 def contacts():
-    return render_page('contacts.html', active_page='contacts')
+    return render_template('contacts.html', active_page='contacts')
 
 @app.route('/privacy')
 def privacy():
-    return render_page('privacy.html', active_page='privacy')
+    return render_template('privacy.html', active_page='privacy')
 
 if __name__ == '__main__':
     # Убедись, что установлен eventlet: pip install eventlet

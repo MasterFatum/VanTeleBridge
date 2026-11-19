@@ -520,13 +520,10 @@
     };
 
     window.addEventListener('load', () => {
-        console.log('Page loaded, checking mediaDevices...');
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.error('getUserMedia not supported in this browser');
             statusDiv.innerText = '❌ Ваш браузер не поддерживает доступ к камере. Используйте Chrome или Firefox.';
             return;
         }
-        console.log('mediaDevices available, calling getLocalStream...');
         getLocalStream();
     });
 
@@ -536,28 +533,17 @@
 
     async function getLocalStream() {
         try {
-            console.log('=== getLocalStream called ===');
-            console.log('navigator.mediaDevices:', navigator.mediaDevices);
             if (!localStream) {
                 statusDiv.innerText = '🎥 Запрос доступа к камере...';
-                console.log('Calling getUserMedia...');
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                console.log('getUserMedia SUCCESS:', stream);
                 localStream = stream;
                 localVideo.srcObject = localStream;
-                console.log('Video srcObject set');
                 statusDiv.innerText = '🎥 Камера включена. Нажмите «Поиск», чтобы начать.';
                 isMicrophoneEnabled = true;
                 localStream.getAudioTracks().forEach(track => track.enabled = true);
                 updateMicButton();
-            } else {
-                console.log('Stream already exists, not requesting again');
             }
         } catch (err) {
-            console.error('=== getUserMedia ERROR ===');
-            console.error('Error name:', err.name);
-            console.error('Error message:', err.message);
-            console.error('Full error:', err);
             if (err.name === 'NotAllowedError') {
                 statusDiv.innerText = '❌ Доступ к камере запрещён. Разрешите в настройках браузера.';
             } else if (err.name === 'NotFoundError') {
@@ -612,14 +598,13 @@
         const selectedGender = document.getElementById('genderSelect').value;
 
         socket.on('connect', () => {
-            console.log('Socket connected, sid:', socket.id);
             socket.emit('join_room', { room: socket.id });
             socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
         });
 
         socket.on('status', (msg) => { statusDiv.innerText = msg; });
 
-        socket.on('signal', (data) => { console.log('Signal received:', data); handleSignal(data); });
+        socket.on('signal', (data) => { handleSignal(data); });
 
         socket.on('connect_with', (data) => {
             statusDiv.innerText = t('found');
@@ -636,7 +621,6 @@
         });
 
         socket.on('partner_disconnected', () => {
-            console.log('Partner disconnected');
             if (isHangingUp) { isHangingUp = false; return; }
             if (peerConnection) { peerConnection.close(); peerConnection = null; }
             remoteVideo.style.display = 'none';
@@ -653,7 +637,7 @@
             chatMessages.innerHTML = '';
         });
 
-        socket.on('chat_message', (data) => { console.log('Chat message received:', data); addChatMessage(data.text, false); });
+        socket.on('chat_message', (data) => { addChatMessage(data.text, false); });
 
         socket.emit('find_partner', { country: selectedCountry, gender: selectedGender });
     }
@@ -720,7 +704,7 @@
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
             socket.emit('signal', { target: targetSid, payload: { type: 'offer', sdp: offer } });
-        } catch (err) { console.error('Offer error:', err); }
+        } catch (err) { }
     }
 
     async function handleSignal(data) {
@@ -737,7 +721,7 @@
             } else if (signal.type === 'ice') {
                 await peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
             }
-        } catch (err) { console.error('Signal error:', err); }
+        } catch (err) { }
     }
 
     function toggleMicrophone() {
@@ -782,7 +766,7 @@
                 const avgLatency = count > 0 ? Math.round(totalRoundTrip / count) : 0;
                 updateSignalIndicator('local', avgLatency);
                 updateSignalIndicator('remote', avgLatency);
-            } catch (err) { console.error('Stats error:', err); }
+            } catch (err) { }
         }, 1000);
     }
 
@@ -834,9 +818,7 @@
         const box = el.closest('.video-box');
         if (!box) return;
         if (!document.fullscreenElement) {
-            box.requestFullscreen().catch(err => {
-                console.error('Ошибка разворачивания:', err);
-            });
+            box.requestFullscreen();
         } else {
             document.exitFullscreen();
         }
