@@ -409,64 +409,63 @@
         currentLang = 'ru';
     }
 
-    const translations = {
-        ru: {
-            search: "🔍 Поиск",
-            stopSearch: "🛑 Завершить поиск",
-            micOn: "🎤 Микрофон: Вкл",
-            micOff: "🚫 Микрофон: Выкл",
-            soundOn: "🔊 Звук: Вкл",
-            soundOff: "🔇 Звук: Выкл",
-            cameraReady: "🎥 Камера включена. Нажмите «Поиск», чтобы начать.",
-            cameraWaiting: "🎥 Разрешите доступ к камере и микрофону...",
-            cameraError: "❌ Ошибка доступа к камере: разрешите доступ",
-            cameraPermission: "❌ Сначала разрешите доступ к камере!",
-            searching: "Поиск собеседника",
-            found: "✅ Собеседник найден!",
-            disconnected: "👋 Собеседник отключён. Нажмите «Поиск» для нового поиска.",
-            searchStopped: "🔍 Поиск остановлен.",
-            timeExpired: "⏰ Время разговора истекло. Поиск нового собеседника...",
-            timer: "⏱ Время разговора: {time}",
-            you: "Вы",
-            partner: "Собеседник",
-            countryLabel: "Выберите страну для поиска:",
-            genderLabel: "Пол собеседника:",
-            countryAny: "🌍 Любая страна",
-            genderAny: "👤 Любой пол",
-            genderMale: "👨 Мужчина",
-            genderFemale: "👩 Женщина",
-            chatPlaceholder: "Введите сообщение...",
-            send: "Отправить"
-        },
-        en: {
-            search: "🔍 Find",
-            stopSearch: "🛑 Stop Search",
-            micOn: "🎤 Microphone: On",
-            micOff: "🚫 Microphone: Off",
-            soundOn: "🔊 Speaker: On",
-            soundOff: "🔇 Speaker: Off",
-            cameraReady: "🎥 Camera ready. Click \"Find\" to start.",
-            cameraWaiting: "🎥 Grant camera and microphone access...",
-            cameraError: "❌ Camera access error: please allow access",
-            cameraPermission: "❌ Please allow camera access first!",
-            searching: "Searching for partner",
-            found: "✅ Partner found!",
-            disconnected: "👋 Partner disconnected. Click \"Find\" for a new search.",
-            searchStopped: "🔍 Search stopped.",
-            timeExpired: "⏰ Call time expired. Searching for new partner...",
-            timer: "⏱ Call duration: {time}",
-            you: "You",
-            partner: "Partner",
-            countryLabel: "Select country for search:",
-            genderLabel: "Partner's gender:",
-            countryAny: "🌍 Any country",
-            genderAny: "Any gender",
-            genderMale: "Male",
-            genderFemale: "Female",
-            chatPlaceholder: "Type a message...",
-            send: "Send"
-        }
-    };
+    // Chat-specific translations (base.html already has common ones)
+    translations.ru.search = "🔍 Поиск";
+    translations.ru.stopSearch = "🛑 Завершить поиск";
+    translations.ru.micOn = "🎤 Микрофон: Вкл";
+    translations.ru.micOff = "🚫 Микрофон: Выкл";
+    translations.ru.soundOn = "🔊 Звук: Вкл";
+    translations.ru.soundOff = "🔇 Звук: Выкл";
+    translations.ru.cameraReady = "🎥 Камера включена. Нажмите «Поиск», чтобы начать.";
+    translations.ru.cameraWaiting = "🎥 Запрос доступа к камере...";
+    translations.ru.cameraError = "❌ Ошибка доступа к камере: разрешите доступ";
+    translations.ru.cameraPermission = "❌ Сначала разрешите доступ к камере!";
+    translations.ru.searching = "Поиск собеседника";
+    translations.ru.found = "✅ Собеседник найден!";
+    translations.ru.disconnected = "👋 Собеседник отключён. Нажмите «Поиск» для нового поиска.";
+    translations.ru.searchStopped = "🔍 Поиск остановлен.";
+    translations.ru.timeExpired = "⏰ Время разговора истекло. Поиск нового собеседника...";
+    translations.ru.timer = "⏱ Время разговора: {time}";
+    translations.ru.you = "Вы";
+    translations.ru.partner = "Собеседник";
+    translations.ru.countryLabel = "Выберите страну для поиска:";
+    translations.ru.genderLabel = "Пол собеседника:";
+    translations.ru.countryAny = "🌍 Любая страна";
+    translations.ru.genderAny = "👤 Любой пол";
+    translations.ru.genderMale = "👨 Мужчина";
+    translations.ru.genderFemale = "👩 Женщина";
+    translations.ru.chatPlaceholder = "Введите сообщение...";
+    translations.ru.send = "Отправить";
+
+    translations.en.search = "🔍 Find";
+    translations.en.stopSearch = "🛑 Stop Search";
+    translations.en.micOn = "🎤 Microphone: On";
+    translations.en.micOff = "🚫 Microphone: Off";
+    translations.en.soundOn = "🔊 Speaker: On";
+    translations.en.soundOff = "🔇 Speaker: Off";
+    translations.en.cameraReady = "🎥 Camera ready. Click \"Find\" to start.";
+    translations.en.cameraWaiting = "🎥 Grant camera and microphone access...";
+    translations.en.cameraError = "❌ Camera access error: please allow access";
+    translations.en.cameraPermission = "❌ Please allow camera access first!";
+    translations.en.searching = "Searching for partner";
+    translations.en.found = "✅ Partner found!";
+    translations.en.disconnected = "👋 Partner disconnected. Click \"Find\" for a new search.";
+    translations.en.searchStopped = "🔍 Search stopped.";
+    translations.en.timeExpired = "⏰ Call time expired. Searching for new partner...";
+    translations.en.timer = "⏱ Call duration: {time}";
+    translations.en.you = "You";
+    translations.en.partner = "Partner";
+    translations.en.countryLabel = "Select country for search:";
+    translations.en.genderLabel = "Partner's gender:";
+    translations.en.countryAny = "🌍 Any country";
+    translations.en.genderAny = "Any gender";
+    translations.en.genderMale = "Male";
+    translations.en.genderFemale = "Female";
+    translations.en.chatPlaceholder = "Type a message...";
+    translations.en.send = "Send";
+
+    // Apply translations now that chat-specific ones are added
+    applyTranslations();
 
     volumeSlider.addEventListener('input', () => {
         remoteVideo.volume = parseFloat(volumeSlider.value);
@@ -506,6 +505,13 @@
     };
 
     window.addEventListener('load', () => {
+        console.log('Page loaded, checking mediaDevices...');
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('getUserMedia not supported in this browser');
+            statusDiv.innerText = '❌ Ваш браузер не поддерживает доступ к камере. Используйте Chrome или Firefox.';
+            return;
+        }
+        console.log('mediaDevices available, calling getLocalStream...');
         getLocalStream();
     });
 
@@ -515,19 +521,36 @@
 
     async function getLocalStream() {
         try {
+            console.log('=== getLocalStream called ===');
+            console.log('navigator.mediaDevices:', navigator.mediaDevices);
             if (!localStream) {
-                statusDiv.innerText = t('cameraWaiting');
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                statusDiv.innerText = '🎥 Запрос доступа к камере...';
+                console.log('Calling getUserMedia...');
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                console.log('getUserMedia SUCCESS:', stream);
+                localStream = stream;
                 localVideo.srcObject = localStream;
-                statusDiv.innerText = t('cameraReady');
+                console.log('Video srcObject set');
+                statusDiv.innerText = '🎥 Камера включена. Нажмите «Поиск», чтобы начать.';
                 isMicrophoneEnabled = true;
                 localStream.getAudioTracks().forEach(track => track.enabled = true);
                 updateMicButton();
+            } else {
+                console.log('Stream already exists, not requesting again');
             }
         } catch (err) {
-            statusDiv.innerText = t('cameraError');
+            console.error('=== getUserMedia ERROR ===');
+            console.error('Error name:', err.name);
+            console.error('Error message:', err.message);
+            console.error('Full error:', err);
+            if (err.name === 'NotAllowedError') {
+                statusDiv.innerText = '❌ Доступ к камере запрещён. Разрешите в настройках браузера.';
+            } else if (err.name === 'NotFoundError') {
+                statusDiv.innerText = '❌ Камера не найдена.';
+            } else {
+                statusDiv.innerText = '❌ Ошибка: ' + err.message;
+            }
             findButton.disabled = false;
-            console.error('getUserMedia error:', err);
         }
     }
 
